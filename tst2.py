@@ -45,8 +45,11 @@ train_loader = DataLoader(dataset=train_dataset, batch_size=32, shuffle=True)
 val_loader = DataLoader(dataset=val_dataset, batch_size=32, shuffle=False)
 
 # Calculate class weights for imbalanced data
-class_weights = class_weight.compute_class_weight('balanced', classes=np.unique(dataset.targets), y=dataset.targets)
-
+class_weights = class_weight.compute_class_weight(
+    'balanced',
+    np.unique(dataset.targets),
+    dataset.targets
+)
 class_weights = torch.FloatTensor(class_weights)
 
 # Define model
@@ -77,17 +80,13 @@ model = LungCTClassifier()
 criterion = nn.BCELoss(weight=class_weights)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# Define number of epochs
-epochs = 10  # Adjust number of epochs as needed
-
 # Train the model
 for epoch in range(epochs):
     model.train()
     for images, labels in train_loader:
         optimizer.zero_grad()
         outputs = model(images)
-        labels = labels.unsqueeze(1).expand_as(outputs)  # Unsqueeze and expand labels
-        loss = criterion(outputs, labels)
+        loss = criterion(outputs.squeeze(), labels.float())
         loss.backward()
         optimizer.step()
         
@@ -99,8 +98,7 @@ for epoch in range(epochs):
     with torch.no_grad():
         for images, labels in val_loader:
             outputs = model(images)
-            labels = labels.unsqueeze(1).expand_as(outputs)  # Unsqueeze and expand labels
-            val_loss += criterion(outputs, labels).item()
+            val_loss += criterion(outputs.squeeze(), labels.float()).item()
             predicted = torch.round(outputs)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()

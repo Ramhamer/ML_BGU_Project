@@ -1,1 +1,6 @@
-https://semaphoreci.com/blog/imbalanced-data-machine-learning-python
+torch==2.3.0
+torchvision==0.18.0
+torchaudio==2.3.0
+matplotlib==3.4.3
+numpy==1.21.3
+scikit-learn==0.24.2
